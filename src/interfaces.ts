@@ -22,6 +22,7 @@ export interface IHelper {
   UserId?: number;
   createdAt?: string;
   updatedAt?: string;
+  matching_id? : number | null; 
 }
 
 export interface IClient {
@@ -29,6 +30,7 @@ export interface IClient {
   UserId?: number;
   createdAt?: string;
   updatedAt?: string;
+  matching_id? : number | null;
 }
 
 export interface ICity {

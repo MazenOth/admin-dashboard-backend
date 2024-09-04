@@ -1,16 +1,26 @@
-import { Model } from 'sequelize';
+import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
-import User from './User';
-import Country from './City';
 import { IClient } from '../interfaces';
+import { Matching, User } from '../models';
 
 class Client extends Model<IClient> implements IClient {
   UserId!: number;
   CityId!: number;
+  matching_id!: number | null;
 }
 
 Client.init(
-  {},
+  {
+    matching_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+      references: {
+        model: Matching,
+        key: 'id',
+      },
+    },
+  },
   {
     sequelize,
     modelName: 'Client',
