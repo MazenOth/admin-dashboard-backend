@@ -89,7 +89,8 @@ class UserService {
     try {
       const roleId = await RoleService.getRoleId(dto.roleName);
       const limit = dto.paginationOptions.size || 10;
-      const offset = (dto.paginationOptions.page - 1) * limit || 0;
+      const page = dto.paginationOptions.page || 1;
+      const offset = (page - 1) * limit;
       let users: User[] = [];
 
       if (roleId) {
