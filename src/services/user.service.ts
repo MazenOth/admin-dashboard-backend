@@ -1,9 +1,7 @@
 import Client from '../models/Client';
-import User from '../models/User';
-import Country from '../models/City';
 import { RoleService } from './role.service';
-import { Helper } from '../models';
-import { userDto } from '../dto';
+import { City, Helper, User } from '../models';
+import { getUsersDto, userDto } from '../dto';
 import { CityService } from './city.service';
 
 class UserService {
@@ -43,7 +41,8 @@ class UserService {
       }
 
       return result;
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Error creating user:', err.message);
       throw err;
     }
   }
@@ -68,7 +67,58 @@ class UserService {
         return result;
       }
       return result;
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Error updating user:', err.message);
+      throw err;
+    }
+  }
+
+  async deleteUser(userId: number): Promise<number> {
+    try {
+      const deleted = await User.destroy({
+        where: { id: userId },
+      });
+      return deleted;
+    } catch (err: any) {
+      console.error('Error deleting user:', err.message);
+      throw err;
+    }
+  }
+
+  async getAllUsers(dto: getUsersDto): Promise<User[]> {
+    try {
+      const roleId = await RoleService.getRoleId(dto.roleName);
+      const limit = dto.paginationOptions.size || 10;
+      const offset = (dto.paginationOptions.page - 1) * limit || 0;
+      let users: User[] = [];
+
+      if (roleId) {
+        const users = await User.findAll({
+          attributes: [
+            ['id', 'user_id'],
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+          ],
+          include: [
+            {
+              model: City,
+              attributes: ['name'],
+              as: 'City',
+            },
+          ],
+          where: {
+            RoleId: roleId,
+          },
+          limit: limit,
+          offset: offset,
+        });
+        return users;
+      }
+      return users;
+    } catch (err: any) {
+      console.error('Error fetching users by role:', err.message);
       throw err;
     }
   }
