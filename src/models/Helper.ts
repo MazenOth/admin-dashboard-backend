@@ -10,17 +10,7 @@ class Helper extends Model<IHelper> implements IHelper {
 }
 
 Helper.init(
-  {
-    matching_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-      references: {
-        model: Matching,
-        key: 'id',
-      },
-    },
-  },
+  {},
   {
     sequelize,
     modelName: 'Helper',
