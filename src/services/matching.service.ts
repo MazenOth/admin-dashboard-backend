@@ -1,7 +1,7 @@
+import { CityService } from './city.service';
 import { Matching, Client, Helper, User, City } from '../models';
 import {
   potentialMatchDto,
-  getUsersDto,
   verifyMatchDto,
   paginationDto,
   helperClientIdDto,
@@ -15,27 +15,32 @@ class MatchingService {
       const page = dto.page || 1;
       const offset = (page - 1) * limit;
       const clients = await Client.findAll({
-        attributes: ['id'],
+        attributes: [
+          [Sequelize.col('User.id'), 'user_id'],
+          [Sequelize.col('Client.id'), 'client_id'],
+          [Sequelize.col('User.first_name'), 'first_name'],
+          [Sequelize.col('User.last_name'), 'last_name'],
+          [Sequelize.col('User.email'), 'email'],
+          [Sequelize.col('User.phone_number'), 'phone_number'],
+          [Sequelize.col('User.City.name'), 'city_name'],
+          [Sequelize.col('User.City.id'), 'city_id'],
+        ],
         include: [
           {
             model: User,
-            attributes: [
-              'id',
-              'first_name',
-              'last_name',
-              'email',
-              'phone_number',
+            attributes: [],
+            include: [
+              {
+                model: City,
+                attributes: [],
+              },
             ],
-          },
-          {
-            model: City,
-            attributes: ['name'],
           },
         ],
         where: {
           id: {
             [Op.notIn]: Sequelize.literal(
-              `(SELECT "ClientId" FROM "Matchings" m)`
+              '(SELECT "ClientId" FROM "Matchings")'
             ),
           },
         },
@@ -54,8 +59,8 @@ class MatchingService {
       const page = dto.paginationOptions.page || 1;
       const offset = (page - 1) * limit;
 
-      const city = await City.findByPk(dto.cityId);
-      if (!city) throw new Error('City not found');
+      const cityId = await CityService.getCityIdByClient(dto.clientId);
+      if (!cityId) throw new Error('City not found');
 
       const isMatched = await this.verfiyMatch({
         id: dto.clientId,
@@ -65,19 +70,20 @@ class MatchingService {
       if (isMatched) throw new Error('Client already matched');
 
       const potentialHelpers = await Helper.findAll({
-        attributes: ['id'],
+        attributes: [
+          [Sequelize.col('Helper.id'), 'helper_id'],
+          [Sequelize.col('User.id'), 'user_id'],
+          [Sequelize.col('User.first_name'), 'first_name'],
+          [Sequelize.col('User.last_name'), 'last_name'],
+          [Sequelize.col('User.email'), 'email'],
+          [Sequelize.col('User.phone_number'), 'phone_number'],
+        ],
         include: [
           {
             model: User,
-            attributes: [
-              'id',
-              'first_name',
-              'last_name',
-              'email',
-              'phone_number',
-            ],
+            attributes: [],
             where: {
-              CityId: dto.cityId,
+              CityId: cityId,
             },
           },
         ],
