@@ -18,6 +18,14 @@ class MatchingController {
   }
   async getPotentialMatches(req: Request, res: Response) {
     try {
+      const paginationOptions = {
+        size: 10,
+        page: 1,
+      };
+      const clientId = req.params.clientId;
+      req.body.clientId = clientId;
+      req.body.paginationOptions = paginationOptions;
+      console.log(req.body);
       const potentialHelpers = await MatchingService.getPotentialMatches(
         req.body
       );
