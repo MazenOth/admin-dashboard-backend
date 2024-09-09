@@ -1,11 +1,25 @@
 import { Request, Response } from 'express';
 import UserService from '../services/user.service';
+import {
+  createUserRequestDto,
+  deleteUserRequestDto,
+  getAllUsersRequestDto,
+  updateUserRequestDto,
+} from '../dto';
 
 class UserController {
   async createUser(req: Request, res: Response): Promise<void> {
     try {
-      const result = await UserService.createUser(req.body);
-      res.status(201).json(result);
+      const { error, value } = createUserRequestDto.validate(req.body);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+      }
+      const result = await UserService.createUser(value);
+      if (result) {
+        res.status(201).json(result);
+      } else {
+        res.status(400).json({ message: 'User already exists' });
+      }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -15,8 +29,16 @@ class UserController {
     try {
       const userId = req.params.id;
       req.body.id = userId;
-      const result = await UserService.updateUser(req.body);
-      res.status(201).json(result);
+      const { error, value } = updateUserRequestDto.validate(req.body);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+      }
+      const result = await UserService.updateUser(value);
+      if (result) {
+        res.status(200).json(result);
+      } else {
+        res.status(400).json({ message: 'User not found' });
+      }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -24,11 +46,15 @@ class UserController {
 
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
-      const deleted = await UserService.deleteUser(parseInt(req.params.id, 10));
-      if (deleted) {
-        res.status(204).json();
+      const { error, value } = deleteUserRequestDto.validate(req.params.id);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+      }
+      const { destroyed_rows } = await UserService.deleteUser(value);
+      if (destroyed_rows) {
+        res.status(204).json({ message: 'User deleted' });
       } else {
-        res.status(404).json({ message: 'User not found' });
+        res.status(400).json({ message: 'User not found' });
       }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -37,8 +63,17 @@ class UserController {
 
   async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
-      const users = await UserService.getAllUsers(req.body);
-      res.status(200).json(users);
+      const { error, value } = getAllUsersRequestDto.validate(req.query);
+      if (error) {
+        res.status(400).json({ message: error.details[0].message });
+      }
+
+      const users = await UserService.getAllUsers(value);
+      if (users) {
+        res.status(200).json(users);
+      } else {
+        res.status(400).json({ message: 'No users found' });
+      }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
