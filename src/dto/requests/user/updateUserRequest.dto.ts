@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 export interface IUpdateUserRequestDto {
-  id: number;
+  user_id: number;
   first_name: string;
   last_name: string;
   email: string;
@@ -10,7 +10,7 @@ export interface IUpdateUserRequestDto {
 }
 
 export const updateUserRequestDto = Joi.object({
-  id: Joi.number().integer().required().min(1),
+  user_id: Joi.number().integer().required().min(1),
   first_name: Joi.string().required().min(2).max(225),
   last_name: Joi.string().required().min(2).max(225),
   email: Joi.string().required().min(3).max(225).email(),
