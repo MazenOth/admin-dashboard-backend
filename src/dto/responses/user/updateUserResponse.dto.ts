@@ -1,9 +1,8 @@
-export interface userDto {
-  id?: number;
+export interface IUpdateUserResponseDto {
   first_name: string;
   last_name: string;
   email: string;
   phone_number: string;
-  roleName: string;
-  cityName: string;
+  RoleId: number;
+  CityId: number;
 }
