@@ -27,8 +27,9 @@ class UserController {
 
   async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.params.id;
-      req.body.id = userId;
+      const user_id = parseInt(req.params.id, 10);
+      req.body.user_id = user_id;
+      console.log(req.body);
       const { error, value } = updateUserRequestDto.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
@@ -46,7 +47,7 @@ class UserController {
 
   async deleteUser(req: Request, res: Response): Promise<void> {
     try {
-      const { error, value } = deleteUserRequestDto.validate(req.params.id);
+      const { error, value } = deleteUserRequestDto.validate(req.params);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
       }

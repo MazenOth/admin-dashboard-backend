@@ -86,7 +86,7 @@ class UserService {
           CityId: cityId,
         };
         const user = await User.update(updateData, {
-          where: { id: dto.id },
+          where: { id: dto.user_id },
           returning: true,
         });
         return user[1][0];
@@ -117,8 +117,8 @@ class UserService {
   ): Promise<IGetAllUsersResponseDto[]> {
     try {
       const roleId = await RoleService.getRoleId(dto.role_name);
-      const limit = dto.paginationOptions.size || 10;
-      const page = dto.paginationOptions.page || 1;
+      const limit = dto.size || 10;
+      const page = dto.page || 1;
       const offset = (page - 1) * limit;
 
       if (roleId) {
