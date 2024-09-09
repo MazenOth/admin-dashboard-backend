@@ -11,6 +11,7 @@ class User extends Model<IUser> implements IUser {
   email!: string;
   phone_number!: string;
   CityId!: number;
+  RoleId!: number;
 }
 
 User.init(

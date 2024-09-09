@@ -4,9 +4,8 @@ import { IHelper } from '../interfaces';
 import { Matching, User } from '../models';
 
 class Helper extends Model<IHelper> implements IHelper {
+  id!: number;
   UserId!: number;
-  CityId!: number;
-  matching_id!: number | null;
 }
 
 Helper.init(

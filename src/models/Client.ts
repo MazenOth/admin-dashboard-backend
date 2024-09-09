@@ -4,9 +4,8 @@ import { IClient } from '../interfaces';
 import { Matching, User } from '../models';
 
 class Client extends Model<IClient> implements IClient {
+  id!: number;
   UserId!: number;
-  CityId!: number;
-  matching_id!: number | null;
 }
 
 Client.init(
