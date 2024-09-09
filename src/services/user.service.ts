@@ -1,15 +1,27 @@
 import Client from '../models/Client';
 import { RoleService } from './role.service';
 import { City, Helper, User } from '../models';
-import { getUsersDto, userDto } from '../dto';
+import {
+  ICreateUserRequestDto,
+  ICreateUserResponseDto,
+  IUpdateUserRequestDto,
+  IUpdateUserResponseDto,
+  IDeleteUserRequestDto,
+  IDeleteUserResponseDto,
+  IGetAllUsersRequestDto,
+  IGetAllUsersResponseDto,
+} from '../dto';
 import { CityService } from './city.service';
+import { Sequelize } from 'sequelize';
 
 class UserService {
-  async createUser(dto: userDto): Promise<{}> {
+  async createUser(
+    dto: ICreateUserRequestDto
+  ): Promise<ICreateUserResponseDto> {
     try {
-      let result = { user: {}, client: {}, helper: {} };
-      const roleId = await RoleService.getRoleId(dto.roleName);
-      const cityId = await CityService.getCityId(dto.cityName);
+      let result = { user: {}, role: {} };
+      const roleId = await RoleService.getRoleId(dto.role_name);
+      const cityId = await CityService.getCityId(dto.city_name);
 
       console.log({ roleId, cityId });
       if (roleId && cityId) {
@@ -21,38 +33,51 @@ class UserService {
           RoleId: roleId,
           CityId: cityId,
         });
-        result.user = user;
+        if (!user) {
+          throw new Error('Failed to create user');
+        }
 
-        if (dto.roleName == 'client') {
+        if (dto.role_name == 'client') {
           const client = await Client.create({
             UserId: user.id,
           });
-          result.client = client;
-          return result;
-        } else if (dto.roleName == 'helper') {
+          if (!client) {
+            throw new Error('Failed to create client for user');
+          }
+          return {
+            user: user,
+            role: client,
+          };
+        } else if (dto.role_name == 'helper') {
           const helper = await Helper.create({
             UserId: user.id,
           });
-          result.helper = helper;
-          return result;
+          if (!helper) {
+            throw new Error('Failed to create helper for user');
+          }
+          result.role = helper;
+          return {
+            user: user,
+            role: helper,
+          };
         }
       } else {
         throw new Error('Invalid role or city');
       }
-
-      return result;
+      throw new Error('Failed to create user');
     } catch (err: any) {
       console.error('Error creating user:', err.message);
       throw err;
     }
   }
 
-  async updateUser(dto: userDto): Promise<{}> {
+  async updateUser(
+    dto: IUpdateUserRequestDto
+  ): Promise<IUpdateUserResponseDto> {
     try {
-      let result = { user: {}, client: {}, helper: {} };
-      const cityId = await CityService.getCityId(dto.cityName);
+      const cityId = await CityService.getCityId(dto.city_name);
 
-      if (cityId > 0) {
+      if (cityId) {
         const updateData = {
           email: dto.email,
           first_name: dto.first_name,
@@ -60,38 +85,41 @@ class UserService {
           phone_number: dto.phone_number,
           CityId: cityId,
         };
-        result.user = await User.update(updateData, {
+        const user = await User.update(updateData, {
           where: { id: dto.id },
           returning: true,
         });
-        return result;
+        return user[1][0];
       }
-      return result;
+      throw new Error('Failed to update user');
     } catch (err: any) {
       console.error('Error updating user:', err.message);
       throw err;
     }
   }
 
-  async deleteUser(userId: number): Promise<number> {
+  async deleteUser(
+    dto: IDeleteUserRequestDto
+  ): Promise<IDeleteUserResponseDto> {
     try {
       const deleted = await User.destroy({
-        where: { id: userId },
+        where: { id: dto.id },
       });
-      return deleted;
+      return { destroyed_rows: deleted };
     } catch (err: any) {
       console.error('Error deleting user:', err.message);
       throw err;
     }
   }
 
-  async getAllUsers(dto: getUsersDto): Promise<User[]> {
+  async getAllUsers(
+    dto: IGetAllUsersRequestDto
+  ): Promise<IGetAllUsersResponseDto[]> {
     try {
-      const roleId = await RoleService.getRoleId(dto.roleName);
+      const roleId = await RoleService.getRoleId(dto.role_name);
       const limit = dto.paginationOptions.size || 10;
       const page = dto.paginationOptions.page || 1;
       const offset = (page - 1) * limit;
-      let users: User[] = [];
 
       if (roleId) {
         const users = await User.findAll({
@@ -101,23 +129,24 @@ class UserService {
             'last_name',
             'email',
             'phone_number',
+            [Sequelize.col('City.name'), 'city_name'],
           ],
           include: [
             {
               model: City,
-              attributes: ['name'],
-              as: 'City',
+              attributes: [],
             },
           ],
           where: {
             RoleId: roleId,
           },
+          order: [['user_id', 'DESC']],
           limit: limit,
           offset: offset,
         });
         return users;
       }
-      return users;
+      throw new Error('Failed to fetch users by role');
     } catch (err: any) {
       console.error('Error fetching users by role:', err.message);
       throw err;
