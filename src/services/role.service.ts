@@ -1,10 +1,10 @@
 import { Role } from '../models';
 
 export class RoleService {
-  static async getRoleId(roleName: string): Promise<number> {
+  static async getRoleId(role_name: string): Promise<number> {
     try {
       const role = await Role.findOne({
-        where: { name: roleName },
+        where: { name: role_name },
       });
       if (!role) {
         console.log('Role not found');
