@@ -1,12 +1,12 @@
 import { CityService } from './city.service';
-import { Matching, Client, Helper, User, City } from '../models';
+import { Matching, Client, Helper, User, City, sequelize } from '../models';
 import {
   potentialMatchDto,
   verifyMatchDto,
   paginationDto,
   helperClientIdDto,
 } from '../dto';
-import { Op, Sequelize } from 'sequelize';
+import { Op, Sequelize, QueryTypes } from 'sequelize';
 
 class MatchingService {
   async getUnmatchedClients(dto: paginationDto): Promise<Client[]> {
@@ -64,7 +64,7 @@ class MatchingService {
 
       const isMatched = await this.verfiyMatch({
         id: dto.clientId,
-        roleName: 'client',
+        role_name: 'client',
       });
 
       if (isMatched) throw new Error('Client already matched');
@@ -110,57 +110,40 @@ class MatchingService {
       const limit = dto.size || 10;
       const page = dto.page || 1;
       const offset = (page - 1) * limit;
-      const matchings = await Matching.findAll({
-        attributes: ['id'],
-        include: [
-          {
-            model: Client,
-            attributes: ['id'],
-            include: [
-              {
-                model: User,
-                as: 'ClientUser',
-                attributes: [
-                  'first_name',
-                  'last_name',
-                  'email',
-                  'phone_number',
-                ],
-                include: [
-                  {
-                    model: City,
-                    attributes: ['name'],
-                  },
-                ],
-              },
-            ],
+      const matchings = await sequelize.query(
+        `
+        SELECT
+          h.id AS helper_id,
+          c.id AS client_id,
+          m.id AS matching_id,
+          uc.first_name AS client_first_name,
+          uc.last_name AS client_last_name,
+          uc.email AS client_email,
+          uc.phone_number AS client_phone_number,
+          uh.first_name AS helper_first_name,
+          uh.last_name AS helper_last_name,
+          uh.email AS helper_email,
+          uh.phone_number AS helper_phone_number,
+          ci."name" AS city_name
+        FROM "Matchings" m
+        JOIN "Clients" c ON m."ClientId" = c.id
+        JOIN "Helpers" h ON m."HelperId" = h.id
+        JOIN "Users" uh ON uh.id = h."UserId"
+        JOIN "Users" uc ON uc.id = c."UserId"
+        JOIN "Cities" ci ON uc."CityId" = ci.id
+        WHERE uh."CityId" = uc."CityId"
+        ORDER BY m.id DESC
+        LIMIT :limit
+        OFFSET :offset
+        `,
+        {
+          type: QueryTypes.SELECT,
+          replacements: {
+            limit: limit,
+            offset: offset,
           },
-          {
-            model: Helper,
-            attributes: ['id'],
-            include: [
-              {
-                model: User,
-                as: 'HelperUser',
-                attributes: [
-                  'first_name',
-                  'last_name',
-                  'email',
-                  'phone_number',
-                ],
-              },
-            ],
-          },
-        ],
-        where: Sequelize.where(
-          Sequelize.col('ClientUser.CityId'),
-          Op.eq,
-          Sequelize.col('HelperUser.CityId')
-        ),
-        order: [['id', 'ASC']],
-        limit: limit,
-        offset: offset,
-      });
+        }
+      );
       return matchings;
     } catch (error) {
       console.error('Error fetching matched users:', error);
@@ -172,14 +155,14 @@ class MatchingService {
     try {
       const isClientMatched = await this.verfiyMatch({
         id: dto.clientId,
-        roleName: 'client',
+        role_name: 'client',
       });
 
       if (isClientMatched) throw new Error('Client already matched');
 
       const isHelperMatched = await this.verfiyMatch({
         id: dto.helperId,
-        roleName: 'helper',
+        role_name: 'helper',
       });
 
       if (isHelperMatched) throw new Error('Helper already matched');
@@ -215,13 +198,13 @@ class MatchingService {
   async verfiyMatch(dto: verifyMatchDto): Promise<boolean> {
     try {
       let isMatched = false;
-      if (dto.roleName == 'client') {
+      if (dto.role_name == 'client') {
         const client = await Client.findByPk(dto.id);
         if (!client) throw new Error('Client not found');
         const match = await Matching.findOne({ where: { ClientId: dto.id } });
         match ? (isMatched = true) : (isMatched = false);
         return isMatched;
-      } else if (dto.roleName == 'helper') {
+      } else if (dto.role_name == 'helper') {
         const helper = await Helper.findByPk(dto.id);
         if (!helper) throw new Error('Helper not found');
         const match = await Matching.findOne({ where: { HelperId: dto.id } });
