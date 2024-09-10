@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { IHelper } from '../interfaces';
-import { Matching, User } from '../models';
+import User from '../models/User';
 
 class Helper extends Model<IHelper> implements IHelper {
   id!: number;

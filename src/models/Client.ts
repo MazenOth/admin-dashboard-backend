@@ -1,7 +1,7 @@
 import { Model, DataTypes } from 'sequelize';
 import sequelize from '../config/database';
 import { IClient } from '../interfaces';
-import { Matching, User } from '../models';
+import User from '../models/User';
 
 class Client extends Model<IClient> implements IClient {
   id!: number;

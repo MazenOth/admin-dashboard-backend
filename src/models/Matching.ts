@@ -1,6 +1,7 @@
 import { Model } from 'sequelize';
 import sequelize from '../config/database';
-import { Client, Helper } from '../models';
+import Helper from '../models/Helper';
+import Client from '../models/Client';
 import { IMatching } from '../interfaces';
 
 class Matching extends Model<IMatching> implements IMatching {
