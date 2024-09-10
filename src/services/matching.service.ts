@@ -1,15 +1,24 @@
 import { CityService } from './city.service';
 import { Matching, Client, Helper, User, City, sequelize } from '../models';
 import {
-  potentialMatchDto,
-  verifyMatchDto,
-  paginationDto,
-  helperClientIdDto,
+  IGetUnmatchedClientsResponseDto,
+  IGetUnmatchedClientsRequestDto,
+  IGetMatchedUsersRequestDto,
+  IGetMatchedUsersResponseDto,
+  IAssignHelperRequestDto,
+  IAssignHelperResponseDto,
+  IUnassignHelperRequestDto,
+  IUnassignHelperResponseDto,
+  IGetPotentialMatchesRequestDto,
+  IGetPotentialMatchesResponseDto,
+  IVerifyMatchRequestDto,
 } from '../dto';
 import { Op, Sequelize, QueryTypes } from 'sequelize';
 
 class MatchingService {
-  async getUnmatchedClients(dto: paginationDto): Promise<Client[]> {
+  async getUnmatchedClients(
+    dto: IGetUnmatchedClientsRequestDto
+  ): Promise<IGetUnmatchedClientsResponseDto[]> {
     try {
       const limit = dto.size || 10;
       const page = dto.page || 1;
@@ -53,17 +62,19 @@ class MatchingService {
       throw err;
     }
   }
-  async getPotentialMatches(dto: potentialMatchDto): Promise<Helper[]> {
+  async getPotentialMatches(
+    dto: IGetPotentialMatchesRequestDto
+  ): Promise<IGetPotentialMatchesResponseDto[]> {
     try {
-      const limit = dto.paginationOptions.size || 10;
-      const page = dto.paginationOptions.page || 1;
+      const limit = dto.size || 10;
+      const page = dto.page || 1;
       const offset = (page - 1) * limit;
 
-      const cityId = await CityService.getCityIdByClient(dto.clientId);
+      const cityId = await CityService.getCityIdByClient(dto.client_id);
       if (!cityId) throw new Error('City not found');
 
       const isMatched = await this.verfiyMatch({
-        id: dto.clientId,
+        id: dto.client_id,
         role_name: 'client',
       });
 
@@ -105,7 +116,9 @@ class MatchingService {
     }
   }
 
-  async getMatchedUsers(dto: paginationDto) {
+  async getMatchedUsers(
+    dto: IGetMatchedUsersRequestDto
+  ): Promise<IGetMatchedUsersResponseDto[]> {
     try {
       const limit = dto.size || 10;
       const page = dto.page || 1;
@@ -151,25 +164,27 @@ class MatchingService {
     }
   }
 
-  async assignHelper(dto: helperClientIdDto) {
+  async assignHelper(
+    dto: IAssignHelperRequestDto
+  ): Promise<IAssignHelperResponseDto> {
     try {
       const isClientMatched = await this.verfiyMatch({
-        id: dto.clientId,
+        id: dto.client_id,
         role_name: 'client',
       });
 
       if (isClientMatched) throw new Error('Client already matched');
 
       const isHelperMatched = await this.verfiyMatch({
-        id: dto.helperId,
+        id: dto.helper_id,
         role_name: 'helper',
       });
 
       if (isHelperMatched) throw new Error('Helper already matched');
 
       const matching = await Matching.create({
-        ClientId: dto.clientId,
-        HelperId: dto.helperId,
+        ClientId: dto.client_id,
+        HelperId: dto.helper_id,
       });
       return matching;
     } catch (error) {
@@ -178,24 +193,24 @@ class MatchingService {
     }
   }
 
-  async unassignHelper(dto: helperClientIdDto) {
+  async unassignHelper(
+    dto: IUnassignHelperRequestDto
+  ): Promise<IUnassignHelperResponseDto> {
     try {
-      const matching = await Matching.findOne({
-        where: { ClientId: dto.clientId, HelperId: dto.helperId },
+      const deleted = await Matching.destroy({
+        where: { ClientId: dto.client_id, HelperId: dto.helper_id },
       });
-      if (!matching) {
+      if (!deleted) {
         throw new Error('No matching found between this client and helper');
       }
-
-      await matching.destroy();
-      return { message: 'Helper unassigned successfully' };
+      return { destroyed_rows: deleted };
     } catch (error) {
       console.error('Error unassigning helper:', error);
       throw error;
     }
   }
 
-  async verfiyMatch(dto: verifyMatchDto): Promise<boolean> {
+  async verfiyMatch(dto: IVerifyMatchRequestDto): Promise<boolean> {
     try {
       let isMatched = false;
       if (dto.role_name == 'client') {
