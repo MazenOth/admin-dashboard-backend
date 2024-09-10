@@ -4,6 +4,7 @@ import { Client, Helper } from '../models';
 import { IMatching } from '../interfaces';
 
 class Matching extends Model<IMatching> implements IMatching {
+  id!: number;
   ClientId!: number;
   HelperId!: number;
 }
