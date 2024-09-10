@@ -1,5 +1,5 @@
 import Client from '../models/Client';
-import { RoleService } from './role.service';
+import RoleService from './role.service';
 import { City, Helper, User } from '../models';
 import {
   ICreateUserRequestDto,
@@ -11,7 +11,7 @@ import {
   IGetAllUsersRequestDto,
   IGetAllUsersResponseDto,
 } from '../dto';
-import { CityService } from './city.service';
+import CityService from './city.service';
 import { Sequelize } from 'sequelize';
 
 class UserService {

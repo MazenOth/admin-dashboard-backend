@@ -1,7 +1,7 @@
 import { City, Client, User } from '../models';
 
-export class CityService {
-  static async getCityId(cityName: string): Promise<number> {
+class CityService {
+  async getCityId(cityName: string): Promise<number> {
     try {
       const city = await City.findOne({
         where: { name: cityName },
@@ -16,7 +16,7 @@ export class CityService {
       throw err;
     }
   }
-  static async getCityIdByClient(clientId: number): Promise<number> {
+  async getCityIdByClient(clientId: number): Promise<number> {
     try {
       const client = await Client.findByPk(clientId);
       if (!client) {
@@ -34,3 +34,5 @@ export class CityService {
     }
   }
 }
+
+export default new CityService();

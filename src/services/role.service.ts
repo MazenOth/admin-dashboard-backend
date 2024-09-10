@@ -1,7 +1,7 @@
 import { Role } from '../models';
 
-export class RoleService {
-  static async getRoleId(role_name: string): Promise<number> {
+class RoleService {
+  async getRoleId(role_name: string): Promise<number> {
     try {
       const role = await Role.findOne({
         where: { name: role_name },
@@ -18,3 +18,5 @@ export class RoleService {
     }
   }
 }
+
+export default new RoleService();
