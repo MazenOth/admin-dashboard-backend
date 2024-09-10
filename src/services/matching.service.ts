@@ -1,4 +1,4 @@
-import { CityService } from './city.service';
+import CityService from './city.service';
 import { Matching, Client, Helper, User, City, sequelize } from '../models';
 import {
   IGetUnmatchedClientsResponseDto,
