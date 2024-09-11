@@ -8,33 +8,6 @@ import {
 } from '../../../src/dto';
 import { ValidationResult } from 'joi';
 
-// Dependincies
-jest.mock('../../../src/models/User', () => {
-  return {
-    hasOne: jest.fn(),
-    belongsTo: jest.fn(),
-  };
-});
-jest.mock('../../../src/models/Client', () => {
-  return {
-    hasOne: jest.fn(),
-    belongsTo: jest.fn(),
-  };
-});
-jest.mock('../../../src/models/Helper', () => {
-  return {
-    hasOne: jest.fn(),
-    belongsTo: jest.fn(),
-  };
-});
-jest.mock('../../../src/models/Matching', () => {
-  return {
-    hasOne: jest.fn(),
-    belongsTo: jest.fn(),
-  };
-});
-
-// External
 jest.mock('../../../src/services/user.service');
 
 describe('UserController', () => {
