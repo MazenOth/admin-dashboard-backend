@@ -1,4 +1,4 @@
-export interface IGetMatchedUsersResponseDto {
+export interface IMatchingDto {
   matching_id?: number;
   helper_id?: number;
   client_id?: number;
@@ -11,4 +11,9 @@ export interface IGetMatchedUsersResponseDto {
   helper_phone_number?: string;
   helper_email?: string;
   city_name?: string;
+}
+
+export interface IGetMatchedUsersResponseDto {
+  total: number;
+  matchings: IMatchingDto[];
 }

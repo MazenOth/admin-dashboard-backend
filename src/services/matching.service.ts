@@ -157,46 +157,54 @@ class MatchingService {
 
   async getMatchedUsers(
     dto: IGetMatchedUsersRequestDto
-  ): Promise<IGetMatchedUsersResponseDto[]> {
+  ): Promise<IGetMatchedUsersResponseDto> {
     try {
       const limit = dto.size || 10;
       const page = dto.page || 1;
       const offset = (page - 1) * limit;
-      const matchings = await sequelize.query(
-        `
-        SELECT
-          h.id AS helper_id,
-          c.id AS client_id,
-          m.id AS matching_id,
-          uc.first_name AS client_first_name,
-          uc.last_name AS client_last_name,
-          uc.email AS client_email,
-          uc.phone_number AS client_phone_number,
-          uh.first_name AS helper_first_name,
-          uh.last_name AS helper_last_name,
-          uh.email AS helper_email,
-          uh.phone_number AS helper_phone_number,
-          ci."name" AS city_name
-        FROM "Matchings" m
-        JOIN "Clients" c ON m."ClientId" = c.id
-        JOIN "Helpers" h ON m."HelperId" = h.id
-        JOIN "Users" uh ON uh.id = h."UserId"
-        JOIN "Users" uc ON uc.id = c."UserId"
-        JOIN "Cities" ci ON uc."CityId" = ci.id
-        WHERE uh."CityId" = uc."CityId"
-        ORDER BY m.id DESC
-        LIMIT :limit
-        OFFSET :offset
-        `,
-        {
-          type: QueryTypes.SELECT,
-          replacements: {
-            limit: limit,
-            offset: offset,
-          },
-        }
-      );
-      return matchings;
+
+      const [matchings, total] = await Promise.all([
+        sequelize.query(
+          `
+          SELECT
+            h.id AS helper_id,
+            c.id AS client_id,
+            m.id AS matching_id,
+            uc.first_name AS client_first_name,
+            uc.last_name AS client_last_name,
+            uc.email AS client_email,
+            uc.phone_number AS client_phone_number,
+            uh.first_name AS helper_first_name,
+            uh.last_name AS helper_last_name,
+            uh.email AS helper_email,
+            uh.phone_number AS helper_phone_number,
+            ci."name" AS city_name
+          FROM "Matchings" m
+          JOIN "Clients" c ON m."ClientId" = c.id
+          JOIN "Helpers" h ON m."HelperId" = h.id
+          JOIN "Users" uh ON uh.id = h."UserId"
+          JOIN "Users" uc ON uc.id = c."UserId"
+          JOIN "Cities" ci ON uc."CityId" = ci.id
+          WHERE uh."CityId" = uc."CityId"
+          ORDER BY m.id DESC
+          LIMIT :limit
+          OFFSET :offset
+          `,
+          {
+            type: QueryTypes.SELECT,
+            replacements: {
+              limit: limit,
+              offset: offset,
+            },
+          }
+        ),
+        Matching.count(),
+      ]);
+
+      return {
+        total: total,
+        matchings,
+      };
     } catch (error) {
       console.error('Error fetching matched users:', error);
       throw error;
