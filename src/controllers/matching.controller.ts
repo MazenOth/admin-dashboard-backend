@@ -28,13 +28,18 @@ class MatchingController {
   async getPotentialMatches(req: Request, res: Response) {
     try {
       const clientId = req.params.clientId;
-      req.body.clientId = clientId;
-      req.body.paginationOptions = { ...req.query };
-      console.log(req.body);
-      const { error, value } = getPotentialMatchesRequestDto.validate(req.body);
+      const size = req.query.size;
+      const page = req.query.page;
+
+      const { error, value } = getPotentialMatchesRequestDto.validate({
+        client_id: clientId,
+        size: size,
+        page: page,
+      });
       if (error) {
         res.status(400).json({ message: error.details[0].message });
       }
+      console.log(req.body);
       const potentialHelpers = await MatchingService.getPotentialMatches(value);
       if (potentialHelpers) {
         res.status(200).json(potentialHelpers);
