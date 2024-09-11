@@ -114,7 +114,7 @@ class UserService {
 
   async getAllUsers(
     dto: IGetAllUsersRequestDto
-  ): Promise<IGetAllUsersResponseDto[]> {
+  ): Promise<IGetAllUsersResponseDto> {
     try {
       const roleId = await RoleService.getRoleId(dto.role_name);
       const limit = dto.size || 10;
@@ -122,29 +122,40 @@ class UserService {
       const offset = (page - 1) * limit;
 
       if (roleId) {
-        const users = await User.findAll({
-          attributes: [
-            ['id', 'user_id'],
-            'first_name',
-            'last_name',
-            'email',
-            'phone_number',
-            [Sequelize.col('City.name'), 'city_name'],
-          ],
-          include: [
-            {
-              model: City,
-              attributes: [],
+        const [users, total] = await Promise.all([
+          User.findAll({
+            attributes: [
+              ['id', 'user_id'],
+              'first_name',
+              'last_name',
+              'email',
+              'phone_number',
+              [Sequelize.col('City.name'), 'city_name'],
+            ],
+            include: [
+              {
+                model: City,
+                attributes: [],
+              },
+            ],
+            where: {
+              RoleId: roleId,
             },
-          ],
-          where: {
-            RoleId: roleId,
-          },
-          order: [['user_id', 'DESC']],
-          limit: limit,
-          offset: offset,
-        });
-        return users;
+            order: [['user_id', 'DESC']],
+            limit,
+            offset,
+          }),
+          User.count({
+            where: {
+              RoleId: roleId,
+            },
+          }),
+        ]);
+
+        return {
+          total,
+          users,
+        };
       }
       throw new Error('Failed to fetch users by role');
     } catch (err: any) {
