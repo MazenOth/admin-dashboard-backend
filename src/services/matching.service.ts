@@ -80,7 +80,7 @@ class MatchingService {
   }
   async getPotentialMatches(
     dto: IGetPotentialMatchesRequestDto
-  ): Promise<IGetPotentialMatchesResponseDto[]> {
+  ): Promise<IGetPotentialMatchesResponseDto> {
     try {
       const limit = dto.size || 10;
       const page = dto.page || 1;
@@ -96,36 +96,59 @@ class MatchingService {
 
       if (isMatched) throw new Error('Client already matched');
 
-      const potentialHelpers = await Helper.findAll({
-        attributes: [
-          [Sequelize.col('Helper.id'), 'helper_id'],
-          [Sequelize.col('User.id'), 'user_id'],
-          [Sequelize.col('User.first_name'), 'first_name'],
-          [Sequelize.col('User.last_name'), 'last_name'],
-          [Sequelize.col('User.email'), 'email'],
-          [Sequelize.col('User.phone_number'), 'phone_number'],
-        ],
-        include: [
-          {
-            model: User,
-            attributes: [],
-            where: {
-              CityId: cityId,
+      const [potentialHelpers, total] = await Promise.all([
+        Helper.findAll({
+          attributes: [
+            [Sequelize.col('Helper.id'), 'helper_id'],
+            [Sequelize.col('User.id'), 'user_id'],
+            [Sequelize.col('User.first_name'), 'first_name'],
+            [Sequelize.col('User.last_name'), 'last_name'],
+            [Sequelize.col('User.email'), 'email'],
+            [Sequelize.col('User.phone_number'), 'phone_number'],
+          ],
+          include: [
+            {
+              model: User,
+              attributes: [],
+              where: {
+                CityId: cityId,
+              },
+            },
+          ],
+          where: {
+            id: {
+              [Op.notIn]: Sequelize.literal(
+                `(SELECT "HelperId" FROM "Matchings" m)`
+              ),
             },
           },
-        ],
-        where: {
-          id: {
-            [Op.notIn]: Sequelize.literal(
-              `(SELECT "HelperId" FROM "Matchings" m)`
-            ),
+          limit,
+          offset,
+        }),
+        Helper.count({
+          include: [
+            {
+              model: User,
+              attributes: [],
+              where: {
+                CityId: cityId,
+              },
+            },
+          ],
+          where: {
+            id: {
+              [Op.notIn]: Sequelize.literal(
+                `(SELECT "HelperId" FROM "Matchings" m)`
+              ),
+            },
           },
-        },
-        limit: limit,
-        offset: offset,
-      });
+        }),
+      ]);
 
-      return potentialHelpers;
+      return {
+        total,
+        potentialHelpers,
+      };
     } catch (error) {
       console.error('Error fetching potential matches:', error);
       throw error;
