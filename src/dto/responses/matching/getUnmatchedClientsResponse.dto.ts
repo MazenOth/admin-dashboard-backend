@@ -1,5 +1,6 @@
-export interface IGetUnmatchedClientsResponseDto {
-  UserId: number;
+export interface IClientDto {
+  id: number;
+  user_id?: number;
   client_id?: number;
   first_name?: string;
   last_name?: string;
@@ -7,4 +8,9 @@ export interface IGetUnmatchedClientsResponseDto {
   phone_number?: string;
   city_name?: string;
   city_id?: number;
+}
+
+export interface IGetUnmatchedClientsResponseDto {
+  total: number;
+  clients: IClientDto[];
 }

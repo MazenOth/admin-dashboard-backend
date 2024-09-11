@@ -18,47 +18,63 @@ import { Op, Sequelize, QueryTypes } from 'sequelize';
 class MatchingService {
   async getUnmatchedClients(
     dto: IGetUnmatchedClientsRequestDto
-  ): Promise<IGetUnmatchedClientsResponseDto[]> {
+  ): Promise<IGetUnmatchedClientsResponseDto> {
     try {
       const limit = dto.size || 10;
       const page = dto.page || 1;
       const offset = (page - 1) * limit;
-      const clients = await Client.findAll({
-        attributes: [
-          [Sequelize.col('User.id'), 'user_id'],
-          [Sequelize.col('Client.id'), 'client_id'],
-          [Sequelize.col('User.first_name'), 'first_name'],
-          [Sequelize.col('User.last_name'), 'last_name'],
-          [Sequelize.col('User.email'), 'email'],
-          [Sequelize.col('User.phone_number'), 'phone_number'],
-          [Sequelize.col('User.City.name'), 'city_name'],
-          [Sequelize.col('User.City.id'), 'city_id'],
-        ],
-        include: [
-          {
-            model: User,
-            attributes: [],
-            include: [
-              {
-                model: City,
-                attributes: [],
-              },
-            ],
+
+      const [clients, total] = await Promise.all([
+        Client.findAll({
+          attributes: [
+            [Sequelize.col('User.id'), 'user_id'],
+            [Sequelize.col('Client.id'), 'client_id'],
+            [Sequelize.col('User.first_name'), 'first_name'],
+            [Sequelize.col('User.last_name'), 'last_name'],
+            [Sequelize.col('User.email'), 'email'],
+            [Sequelize.col('User.phone_number'), 'phone_number'],
+            [Sequelize.col('User.City.name'), 'city_name'],
+            [Sequelize.col('User.City.id'), 'city_id'],
+          ],
+          include: [
+            {
+              model: User,
+              attributes: [],
+              include: [
+                {
+                  model: City,
+                  attributes: [],
+                },
+              ],
+            },
+          ],
+          where: {
+            id: {
+              [Op.notIn]: Sequelize.literal(
+                '(SELECT "ClientId" FROM "Matchings")'
+              ),
+            },
           },
-        ],
-        where: {
-          id: {
-            [Op.notIn]: Sequelize.literal(
-              '(SELECT "ClientId" FROM "Matchings")'
-            ),
+          limit,
+          offset,
+        }),
+        Client.count({
+          where: {
+            id: {
+              [Op.notIn]: Sequelize.literal(
+                '(SELECT "ClientId" FROM "Matchings")'
+              ),
+            },
           },
-        },
-        limit: limit,
-        offset: offset,
-      });
-      return clients;
+        }),
+      ]);
+
+      return {
+        total,
+        clients,
+      };
     } catch (err: any) {
-      console.error('Error fetching unassigned clients:', err.message);
+      console.error('Error fetching unmatched clients:', err.message);
       throw err;
     }
   }
