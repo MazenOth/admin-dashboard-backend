@@ -60,3 +60,5 @@ Everything should be working from here :)
 
 #### 1- A helper cannot become a client and vice versa.
 #### 2- A helper or a client can only have a single match; if a helper is assigned to a client this helper cannot be reassigned except he unassigned from his client.
+
+_Note: Unfortunately, time didn't help to make seeders, so in the case of testing, you will need to manually create roles (client, helper) and cities for testing._
