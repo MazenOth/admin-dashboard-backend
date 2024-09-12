@@ -26,3 +26,5 @@ export * from './requests/matching/unassignHelperRequest.dto';
 export * from './responses/matching/unassignHelperResponse.dto';
 
 export * from './requests/matching/verifyMatchRequest.dto';
+
+export * from './responses/city/getAllCitiesResponse.dto';
