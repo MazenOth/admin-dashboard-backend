@@ -75,6 +75,10 @@ class UserService {
     dto: IUpdateUserRequestDto
   ): Promise<IUpdateUserResponseDto> {
     try {
+      const user = await User.findByPk(dto.user_id);
+      if (!user) {
+        throw new Error('User not found');
+      }
       const cityId = await CityService.getCityId(dto.city_name);
 
       if (cityId) {

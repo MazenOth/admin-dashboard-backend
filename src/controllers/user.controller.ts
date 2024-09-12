@@ -13,15 +13,23 @@ class UserController {
       const { error, value } = createUserRequestDto.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
+        return;
       }
       const result = await UserService.createUser(value);
       if (result) {
         res.status(201).json(result);
-      } else {
-        res.status(400).json({ message: 'User already exists' });
+        return;
       }
     } catch (error: any) {
+      if (error.message === 'Validation error') {
+        res.status(400).json({ message: 'User already exists' });
+        return;
+      } else if (error.message === 'City not found') {
+        res.status(400).json({ message: error.message });
+        return;
+      }
       res.status(500).json({ message: error.message });
+      return;
     }
   }
 
@@ -33,15 +41,20 @@ class UserController {
       const { error, value } = updateUserRequestDto.validate(req.body);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
+        return;
       }
       const result = await UserService.updateUser(value);
       if (result) {
         res.status(200).json(result);
-      } else {
-        res.status(400).json({ message: 'User not found' });
+        return;
       }
     } catch (error: any) {
+      if (error.message === 'User not found') {
+        res.status(400).json({ message: 'User not found' });
+        return;
+      }
       res.status(500).json({ message: error.message });
+      return;
     }
   }
 
@@ -50,15 +63,19 @@ class UserController {
       const { error, value } = deleteUserRequestDto.validate(req.params);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
+        return;
       }
       const { destroyed_rows } = await UserService.deleteUser(value);
       if (destroyed_rows) {
         res.status(204).json({ message: 'User deleted' });
+        return;
       } else {
         res.status(400).json({ message: 'User not found' });
+        return;
       }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+      return;
     }
   }
 
@@ -67,16 +84,20 @@ class UserController {
       const { error, value } = getAllUsersRequestDto.validate(req.query);
       if (error) {
         res.status(400).json({ message: error.details[0].message });
+        return;
       }
 
       const users = await UserService.getAllUsers(value);
       if (users) {
         res.status(200).json(users);
+        return;
       } else {
         res.status(400).json({ message: 'No users found' });
+        return;
       }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+      return;
     }
   }
 }
