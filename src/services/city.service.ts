@@ -1,6 +1,23 @@
+import { IGetAllCitiesResponseDto } from '../dto';
 import { City, Client, User } from '../models';
 
 class CityService {
+  async getAllCities(): Promise<IGetAllCitiesResponseDto[]> {
+    try {
+      const cities = await City.findAll({
+        attributes: [
+          ['id', 'city_id'],
+          ['name', 'city_name'],
+        ],
+        order: [['name', 'ASC']],
+      });
+
+      return cities;
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      throw new Error('Failed to fetch cities');
+    }
+  }
   async getCityId(cityName: string): Promise<number> {
     try {
       const city = await City.findOne({
