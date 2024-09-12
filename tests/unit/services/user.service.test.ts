@@ -13,6 +13,8 @@ jest.mock('../../../src/models/User', () => {
     update: jest.fn(),
     destroy: jest.fn(),
     findAll: jest.fn(),
+    findByPk: jest.fn(),
+    count: jest.fn(),
   };
 });
 jest.mock('../../../src/models/Client', () => {
@@ -176,6 +178,15 @@ describe('UserService', () => {
       };
 
       (CityService.getCityId as jest.Mock).mockResolvedValue(3);
+      (User.findByPk as jest.Mock).mockResolvedValue({
+        id: 1,
+        email: 'old@example.com',
+        first_name: 'old',
+        last_name: 'user',
+        phone_number: '11111111311',
+        city_name: 'old City',
+      });
+
       (User.update as jest.Mock).mockResolvedValue([
         1,
         [{ id: 1, ...dto, CityId: 3 }],
@@ -267,16 +278,19 @@ describe('UserService', () => {
         limit: 10,
         offset: 0,
       });
-      expect(result).toEqual([
-        {
-          user_id: 1,
-          first_name: 'Test',
-          last_name: 'User',
-          email: 'test@example.com',
-          phone_number: '1234567890',
-          city_name: 'Test City',
-        },
-      ]);
+      expect(result).toEqual({
+        total: undefined,
+        users: [
+          {
+            user_id: 1,
+            first_name: 'Test',
+            last_name: 'User',
+            email: 'test@example.com',
+            phone_number: '1234567890',
+            city_name: 'Test City',
+          },
+        ],
+      });
     });
 
     it('should handle errors when fetching users', async () => {

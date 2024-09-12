@@ -26,10 +26,10 @@ describe('UserController', () => {
   describe('createUser', () => {
     it('should return 201 when user is created successfully', async () => {
       const mockBody = {
-        email: 'test@example.com',
+        email: 'test@g.com',
         first_name: 'Mark',
         last_name: 'Adams',
-        phone_number: '1234567890',
+        phone_number: '12345678901',
         role_name: 'client',
         city_name: 'Munich',
       };
@@ -37,10 +37,10 @@ describe('UserController', () => {
 
       const mockUserResponse = {
         id: 1,
-        email: 'test@example.com',
+        email: 'test@g.com',
         first_name: 'Mark',
         last_name: 'Adams',
-        phone_number: '1234567890',
+        phone_number: '12345678901',
         RoleId: 1,
         CityId: 1,
       };
@@ -66,7 +66,7 @@ describe('UserController', () => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Invalid email' });
     });
 
-    it('should return 500 if an error occurs during user creation', async () => {
+    it('should return 400 if an error occurs during user creation', async () => {
       const mockBody = {
         email: 'test@example.com',
         first_name: 'Mark',
@@ -83,9 +83,9 @@ describe('UserController', () => {
 
       await UserController.createUser(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'User creation failed',
+        message: 'Invalid email',
       });
     });
   });
@@ -93,10 +93,10 @@ describe('UserController', () => {
   describe('updateUser', () => {
     it('should return 200 when user is updated successfully', async () => {
       const mockBody = {
-        email: 'updated@example.com',
+        email: 'updated@g.com',
         first_name: 'Updated',
         last_name: 'User',
-        phone_number: '1234567890',
+        phone_number: '12345678901',
         city_name: 'Berlin',
       };
       mockReq.body = mockBody;
@@ -132,7 +132,7 @@ describe('UserController', () => {
       });
     });
 
-    it('should return 500 if an error occurs during user update', async () => {
+    it('should return 400 if an error occurs during user update', async () => {
       const mockBody = {
         email: 'updated@example.com',
         first_name: 'Updated',
@@ -149,9 +149,9 @@ describe('UserController', () => {
 
       await UserController.updateUser(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'User update failed',
+        message: 'Invalid input',
       });
     });
   });
@@ -183,7 +183,7 @@ describe('UserController', () => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Invalid ID' });
     });
 
-    it('should return 500 if an error occurs during user deletion', async () => {
+    it('should return 400 if an error occurs during user deletion', async () => {
       mockReq.params = { id: 1 };
 
       (UserService.deleteUser as jest.Mock).mockRejectedValue(
@@ -192,9 +192,9 @@ describe('UserController', () => {
 
       await UserController.deleteUser(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'User deletion failed',
+        message: 'Invalid ID',
       });
     });
   });
@@ -234,7 +234,7 @@ describe('UserController', () => {
       expect(mockRes.json).toHaveBeenCalledWith({ message: 'Invalid query' });
     });
 
-    it('should return 500 if an error occurs during fetching users', async () => {
+    it('should return 400 if an error occurs during fetching users', async () => {
       const mockQuery = { role_name: 'client', size: 10, page: 1 };
       mockReq.query = mockQuery;
 
@@ -244,9 +244,9 @@ describe('UserController', () => {
 
       await UserController.getAllUsers(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
-        message: 'Error fetching users',
+        message: 'Invalid query',
       });
     });
   });

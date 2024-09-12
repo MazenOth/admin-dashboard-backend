@@ -7,15 +7,18 @@ jest.mock('../../../src/models', () => ({
   Client: {
     findAll: jest.fn(),
     findByPk: jest.fn(),
+    count: jest.fn(),
   },
   Helper: {
     findAll: jest.fn(),
     findByPk: jest.fn(),
+    count: jest.fn(),
   },
   Matching: {
     create: jest.fn(),
     findOne: jest.fn(),
     destroy: jest.fn(),
+    count: jest.fn(),
   },
   sequelize: {
     query: jest.fn(),
@@ -47,6 +50,7 @@ describe('MatchingService', () => {
       ];
 
       (Client.findAll as jest.Mock).mockResolvedValue(mockClients);
+      (Client.count as jest.Mock).mockResolvedValue(1);
 
       const result = await MatchingService.getUnmatchedClients({
         page: 1,
@@ -64,7 +68,7 @@ describe('MatchingService', () => {
         limit: 10,
         offset: 0,
       });
-      expect(result).toEqual(mockClients);
+      expect(result).toEqual({ total: 1, clients: mockClients });
     });
 
     it('should throw an error if fetching clients fails', async () => {
@@ -114,7 +118,19 @@ describe('MatchingService', () => {
         limit: 10,
         offset: 0,
       });
-      expect(result).toEqual(mockHelpers);
+      expect(result).toEqual({
+        potentialHelpers: [
+          {
+            email: 'Julie.Anderson@example.com',
+            first_name: 'Julie',
+            helper_id: 1,
+            last_name: 'Anderson',
+            phone_number: '6787654321',
+            user_id: 2,
+          },
+        ],
+        total: undefined,
+      });
     });
 
     it('should throw an error if the client is already matched', async () => {
@@ -157,7 +173,25 @@ describe('MatchingService', () => {
         type: QueryTypes.SELECT,
         replacements: { limit: 10, offset: 0 },
       });
-      expect(result).toEqual(mockMatches);
+      expect(result).toEqual({
+        matchings: [
+          {
+            city_name: 'Munchen',
+            client_email: 'Mark.Adams@example.com',
+            client_first_name: 'Mark',
+            client_id: 1,
+            client_last_name: 'Adams',
+            client_phone_number: '1234567890',
+            helper_email: 'Julie.Anderson@example.com',
+            helper_first_name: 'Julie',
+            helper_id: 1,
+            helper_last_name: 'Anderson',
+            helper_phone_number: '0987654321',
+            matching_id: 1,
+          },
+        ],
+        total: undefined,
+      });
     });
 
     it('should throw an error if fetching matched users fails', async () => {
