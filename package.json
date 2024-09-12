@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --watch src src/server.ts",
-    "test": "cls & npx jest tests/integration/user.routes.test.ts --detectOpenHandles --silent"
+    "test": "cls & jest --silent"
   },
   "repository": {
     "type": "git",
